@@ -46,6 +46,9 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 // Статические файлы для изображений
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Статические файлы для админ-панели
+app.use('/admin', express.static(path.join(__dirname, 'public')));
+
 // API роуты
 app.use('/api/perfumes', perfumeRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -57,6 +60,11 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         service: 'Perfume Backend API'
     });
+});
+
+// Главная страница - редирект на админ-панель
+app.get('/', (req, res) => {
+    res.redirect('/admin');
 });
 
 // Обработка 404 ошибок
