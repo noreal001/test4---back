@@ -12,7 +12,7 @@ const uploadRoutes = require('./routes/upload');
 
 // Инициализация приложения
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Создание папки для загрузок если её нет
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -33,7 +33,7 @@ app.use(limiter);
 
 // CORS настройки для работы с React фронтендом
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Разрешенные домены для React
+    origin: ['http://localhost:3000', 'http://localhost:5000'], // Разрешенные домены для React
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

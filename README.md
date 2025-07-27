@@ -29,7 +29,7 @@ npm run dev
 npm start
 ```
 
-Сервер будет доступен по адресу: `http://localhost:5000`
+Сервер будет доступен по адресу: `http://localhost:3001`
 
 ## API Endpoints
 
@@ -100,7 +100,7 @@ npm start
 
 ### Создание нового аромата
 ```javascript
-const response = await fetch('http://localhost:5000/api/perfumes', {
+const response = await fetch('http://localhost:3001/api/perfumes', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ const response = await fetch('http://localhost:5000/api/perfumes', {
 const formData = new FormData();
 formData.append('image', file);
 
-const response = await fetch('http://localhost:5000/api/upload/image', {
+const response = await fetch('http://localhost:3001/api/upload/image', {
   method: 'POST',
   body: formData
 });
@@ -134,14 +134,14 @@ const response = await fetch('http://localhost:5000/api/upload/image', {
 
 ### Получение всех ароматов
 ```javascript
-const response = await fetch('http://localhost:5000/api/perfumes');
+const response = await fetch('http://localhost:3001/api/perfumes');
 const data = await response.json();
 console.log(data.data); // Массив ароматов
 ```
 
 ### Поиск ароматов
 ```javascript
-const response = await fetch('http://localhost:5000/api/perfumes?search=vanilla');
+const response = await fetch('http://localhost:3001/api/perfumes?search=vanilla');
 const data = await response.json();
 ```
 
@@ -150,7 +150,7 @@ const data = await response.json();
 В вашем React приложении используйте следующий базовый URL:
 
 ```javascript
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // Пример сервиса для работы с API
 export const perfumeService = {
