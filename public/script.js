@@ -4,6 +4,7 @@ const API_BASE_URL = 'http://localhost:3001/api';
 // Состояние приложения
 let currentProducts = [];
 let isLoading = false;
+let currentView = 'table'; // 'table' или 'grid'
 
 // Элементы DOM
 const elements = {
@@ -23,7 +24,10 @@ const elements = {
     emptyState: document.getElementById('empty-state'),
     productImage: document.getElementById('product-image'),
     imagePreview: document.getElementById('image-preview'),
-    notifications: document.getElementById('notifications')
+    notifications: document.getElementById('notifications'),
+    tableView: document.getElementById('table-view'),
+    gridView: document.getElementById('grid-view'),
+    viewControls: document.querySelectorAll('[data-view]')
 };
 
 // Инициализация
@@ -56,6 +60,11 @@ function initializeApp() {
     
     // Событие превью изображения
     elements.productImage.addEventListener('change', handleImagePreview);
+    
+    // События переключения видов
+    elements.viewControls.forEach(control => {
+        control.addEventListener('click', handleViewChange);
+    });
     
     // Закрытие модального окна по клику вне его
     elements.addProductModal.addEventListener('click', function(e) {
@@ -121,7 +130,7 @@ async function loadProducts() {
         
         if (data.success) {
             currentProducts = data.data;
-            renderProductsTable(currentProducts);
+            renderProducts(currentProducts);
         } else {
             showNotification('error', 'Ошибка', 'Не удалось загрузить товары');
         }
@@ -141,6 +150,38 @@ function showLoading(show) {
     
     if (show) {
         elements.productsTable.innerHTML = '';
+    }
+}
+
+// Переключение видов
+function handleViewChange(e) {
+    const view = e.currentTarget.dataset.view;
+    
+    // Обновляем активные кнопки
+    elements.viewControls.forEach(control => {
+        control.classList.remove('active');
+    });
+    e.currentTarget.classList.add('active');
+    
+    // Переключаем вид
+    currentView = view;
+    renderProducts(currentProducts);
+}
+
+// Универсальная функция рендеринга
+function renderProducts(products) {
+    if (currentView === 'table') {
+        renderProductsTable(products);
+        elements.tableView.classList.remove('hidden');
+        elements.tableView.classList.add('visible');
+        elements.gridView.classList.remove('visible');
+        elements.gridView.classList.add('hidden');
+    } else {
+        renderProductsGrid(products);
+        elements.gridView.classList.remove('hidden');
+        elements.gridView.classList.add('visible');
+        elements.tableView.classList.remove('visible');
+        elements.tableView.classList.add('hidden');
     }
 }
 
@@ -203,12 +244,99 @@ function renderProductsTable(products) {
     `).join('');
 }
 
+// Отображение flip-карточек товаров
+function renderProductsGrid(products) {
+    const gridContainer = elements.gridView;
+    
+    if (products.length === 0) {
+        gridContainer.innerHTML = '';
+        elements.emptyState.style.display = 'block';
+        return;
+    }
+    
+    elements.emptyState.style.display = 'none';
+    
+    gridContainer.innerHTML = products.map(product => `
+        <div class="product-flip-card">
+            <div class="product-flip-card-inner">
+                <!-- Лицевая сторона -->
+                <div class="product-flip-card-front">
+                    <div class="flip-card-category">${getCategoryName(product.category)}</div>
+                    <div class="flip-card-status ${product.is_available ? 'active' : 'inactive'}">
+                        ${product.is_available ? 'Активный' : 'Неактивный'}
+                    </div>
+                    
+                    ${product.image_url 
+                        ? `<img src="${API_BASE_URL.replace('/api', '')}${product.image_url}" alt="${product.name}" class="flip-card-image">`
+                        : '<div class="flip-card-image-placeholder"><i class="fas fa-image"></i></div>'
+                    }
+                    
+                    <div class="flip-card-front-content">
+                        <div class="flip-card-title">${product.name}</div>
+                        <div class="flip-card-brand">${product.brand}</div>
+                        <div class="flip-card-price">
+                            ${product.price ? product.price.toLocaleString('ru-RU') + ' ₽' : 'Цена не указана'}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Обратная сторона -->
+                <div class="product-flip-card-back">
+                    <div class="flip-card-back-header">
+                        <div class="flip-card-back-title">${product.name}</div>
+                        <div class="flip-card-back-brand">${product.brand}</div>
+                    </div>
+                    
+                    <div class="flip-card-details">
+                        <div class="flip-card-detail-row">
+                            <span class="flip-card-detail-label">Объем</span>
+                            <span class="flip-card-detail-value">${product.volume ? product.volume + ' мл' : '—'}</span>
+                        </div>
+                        <div class="flip-card-detail-row">
+                            <span class="flip-card-detail-label">Пол</span>
+                            <span class="flip-card-detail-value">${getGenderName(product.gender)}</span>
+                        </div>
+                        <div class="flip-card-detail-row">
+                            <span class="flip-card-detail-label">В наличии</span>
+                            <span class="flip-card-detail-value" style="color: ${product.stock_quantity > 0 ? '#059669' : '#dc2626'};">
+                                ${product.stock_quantity || 0} шт.
+                            </span>
+                        </div>
+                        <div class="flip-card-detail-row">
+                            <span class="flip-card-detail-label">Добавлен</span>
+                            <span class="flip-card-detail-value">${formatDate(product.created_at)}</span>
+                        </div>
+                    </div>
+                    
+                    ${(product.notes_top || product.notes_middle || product.notes_base) ? `
+                        <div class="flip-card-notes">
+                            <h4>Пирамида аромата</h4>
+                            ${product.notes_top ? `<p><strong>Верх:</strong> ${product.notes_top}</p>` : ''}
+                            ${product.notes_middle ? `<p><strong>Сердце:</strong> ${product.notes_middle}</p>` : ''}
+                            ${product.notes_base ? `<p><strong>База:</strong> ${product.notes_base}</p>` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flip-card-actions">
+                        <button class="flip-card-btn flip-card-btn-edit" onclick="editProduct(${product.id})">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </button>
+                        <button class="flip-card-btn flip-card-btn-delete" onclick="deleteProduct(${product.id})">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 // Поиск товаров
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
     
     if (searchTerm === '') {
-        renderProductsTable(currentProducts);
+        renderProducts(currentProducts);
         return;
     }
     
@@ -218,7 +346,7 @@ function handleSearch(e) {
         (product.description && product.description.toLowerCase().includes(searchTerm))
     );
     
-    renderProductsTable(filteredProducts);
+    renderProducts(filteredProducts);
 }
 
 // Фильтрация товаров
@@ -248,7 +376,7 @@ function handleFilter() {
         );
     }
     
-    renderProductsTable(filteredProducts);
+    renderProducts(filteredProducts);
 }
 
 // Открытие модального окна добавления товара

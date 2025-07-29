@@ -100,7 +100,8 @@
 
             <!-- Секция товаров -->
             <section id="products-section" class="content-section active">
-                <div class="products-table-container">
+                <!-- Табличный вид -->
+                <div class="products-table-container visible" id="table-view">
                     <table class="products-table">
                         <thead>
                             <tr>
@@ -119,6 +120,11 @@
                             <!-- Товары будут загружены через JavaScript -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Карточный вид с flip эффектом -->
+                <div class="products-grid hidden" id="grid-view">
+                    <!-- Flip-карточки будут загружены через JavaScript -->
                 </div>
                 
                 <!-- Загрузка -->
